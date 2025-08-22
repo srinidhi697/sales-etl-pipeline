@@ -6,9 +6,9 @@ resource "aws_glue_crawler" "this" {
   name          = "${var.project}-${var.env}-crawler"
   role          = var.glue_role_arn
   database_name = aws_glue_catalog_database.this.name
-
+  table_prefix  = "raw_"
   s3_target {
-    path = "s3://${var.bucket}/"
+    path = "s3://${var.bucket}/raw/sales/"
   }
 
   depends_on = [aws_glue_catalog_database.this]

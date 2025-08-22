@@ -29,6 +29,8 @@ resource "aws_lambda_function" "start_crawler" {
   runtime       = "python3.9"
   filename      = "${path.module}/crawler_lambda.zip"
   timeout       = 60
+  source_code_hash = filebase64sha256("${path.module}/crawler_lambda.zip")
+
 
   environment {
     variables = {

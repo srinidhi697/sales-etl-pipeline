@@ -76,8 +76,4 @@ module "cloudwatch" {
   log_group_name = "/aws/etl/sales-pipeline"
 }
 
-module "secrets_manager" {
-  source  = "./modules/secrets_manager"
-  project = var.project
-  env     = var.env
-}
+

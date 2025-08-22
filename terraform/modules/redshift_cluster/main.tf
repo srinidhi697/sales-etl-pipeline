@@ -6,14 +6,14 @@ resource "aws_subnet" "redshift_subnet_a" {
   vpc_id                  = aws_vpc.redshift_vpc.id
   cidr_block              = "10.0.1.0/24"
   availability_zone       = "${var.region}a"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 }
 
 resource "aws_subnet" "redshift_subnet_b" {
   vpc_id                  = aws_vpc.redshift_vpc.id
   cidr_block              = "10.0.2.0/24"
   availability_zone       = "${var.region}b"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 }
 
 resource "aws_redshift_subnet_group" "this" {
@@ -31,7 +31,7 @@ resource "aws_security_group" "redshift_sg" {
     from_port   = 5439
     to_port     = 5439
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["99.30.51.221/32"]
   }
 
   egress {
