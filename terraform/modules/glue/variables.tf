@@ -17,18 +17,17 @@ variable "redshift_cluster_id" {
 
 variable "redshift_db_name" {
   type    = string
-  default = "dev"   # default Redshift DB
-}
-
-variable "redshift_master_username" {
-  type = string
-}
-
-variable "redshift_master_password" {
-  type      = string
-  sensitive = true
+  default = "sales_dw"   
 }
 
 variable "redshift_copy_role_arn" {
+  type = string
+}
+
+variable "redshift_username_secret_arn" {
+  type = string
+}
+
+variable "redshift_password_secret_arn" {
   type = string
 }

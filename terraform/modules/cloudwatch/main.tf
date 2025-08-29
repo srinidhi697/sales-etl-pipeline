@@ -14,7 +14,7 @@ resource "aws_cloudwatch_log_metric_filter" "error_count" {
   name           = "${var.project}-${var.env}-error-count"
   log_group_name = aws_cloudwatch_log_group.this.name
 
-  pattern = "ERROR"
+  pattern = "?ERROR ?Error ?Exception ?Failed ?RuntimeError"
 
   metric_transformation {
     name      = "ErrorCount"

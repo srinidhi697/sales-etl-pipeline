@@ -7,6 +7,10 @@ output "step_functions_role_arn" {
   value = aws_iam_role.step_functions.arn
 }
 
+output "step_functions_role_name" {
+  value = aws_iam_role.step_functions.name
+}
+
 output "redshift_copy_role_arn" {
   value = aws_iam_role.redshift_copy_role.arn
 }

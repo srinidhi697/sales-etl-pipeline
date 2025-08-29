@@ -1,3 +1,9 @@
+# -----------------------------
+# Data sources for account + region
+# -----------------------------
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 resource "aws_glue_catalog_database" "this" {
   name = "${var.project}-${var.env}-db"
 }
@@ -77,6 +83,16 @@ resource "aws_s3_object" "silver_to_gold" {
 # -----------------------------
 # Gold -> Redshift Job
 # -----------------------------
+# Fetch Redshift Username from Secrets Manager
+data "aws_secretsmanager_secret_version" "redshift_username" {
+  secret_id = var.redshift_username_secret_arn
+}
+
+# Fetch Redshift Password from Secrets Manager
+data "aws_secretsmanager_secret_version" "redshift_password" {
+  secret_id = var.redshift_password_secret_arn
+}
+
 resource "aws_glue_job" "gold_to_redshift" {
   name              = "${var.project}-${var.env}-gold-to-redshift"
   role_arn          = var.glue_role_arn
@@ -96,8 +112,8 @@ resource "aws_glue_job" "gold_to_redshift" {
     "--SOURCE_PATH"         = "s3://${var.bucket}/gold/"
     "--REDSHIFT_CLUSTER_ID" = var.redshift_cluster_id
     "--REDSHIFT_DB"         = var.redshift_db_name
-    "--REDSHIFT_USER"       = var.redshift_master_username
-    "--REDSHIFT_PASSWORD"   = var.redshift_master_password
+    "--REDSHIFT_PASSWORD"  = data.aws_secretsmanager_secret_version.redshift_password.secret_string
+    "--REDSHIFT_USERNAME"  = data.aws_secretsmanager_secret_version.redshift_username.secret_string
     "--REDSHIFT_ROLE"       = var.redshift_copy_role_arn
   }
 }
@@ -107,4 +123,31 @@ resource "aws_s3_object" "gold_to_redshift" {
   bucket = var.bucket
   key    = "scripts/gold_to_redshift.py"
   source = "${path.module}/../../../src/gold_to_redshift.py"
+}
+
+# -----------------------------
+# IAM Policy for Glue -> Redshift Data API
+# -----------------------------
+resource "aws_iam_policy" "glue_redshift_data_policy" {
+  name        = "${var.project}-${var.env}-glue-redshift-data"
+  description = "Temporary full access for Glue to Redshift Data API (debugging)"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "redshift-data:*",
+          "redshift:*"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "glue_attach_redshift_data" {
+  role       = basename(var.glue_role_arn)
+  policy_arn = aws_iam_policy.glue_redshift_data_policy.arn
 }

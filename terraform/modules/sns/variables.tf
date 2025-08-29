@@ -8,7 +8,4 @@ variable "env" {
   type        = string
 }
 
-variable "sns_email" {
-  description = "Email address to subscribe to the SNS topic"
-  type        = string
-}
+variable "sns_email_secret_arn" { type = string }

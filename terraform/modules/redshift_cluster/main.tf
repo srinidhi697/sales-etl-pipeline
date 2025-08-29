@@ -42,20 +42,37 @@ resource "aws_security_group" "redshift_sg" {
   }
 }
 
+# Username
+data "aws_secretsmanager_secret_version" "redshift_username" {
+  secret_id = var.redshift_username_secret_arn
+}
+
+# Password
+data "aws_secretsmanager_secret_version" "redshift_password" {
+  secret_id = var.redshift_password_secret_arn
+}
+
+# Role ARN
+data "aws_secretsmanager_secret_version" "redshift_role" {
+  secret_id = var.redshift_role_secret_arn
+}
+
+
 resource "aws_redshift_cluster" "this" {
-  cluster_identifier  = "${var.project}-${var.env}-redshift"
-  node_type           = "ra3.xlplus"
-  master_username     = var.redshift_master_username
-  master_password     = var.redshift_master_password
-  cluster_type        = "single-node"
+  cluster_identifier      = "${var.project}-${var.env}-redshift"
+  node_type               = "ra3.xlplus"
+  master_username         = data.aws_secretsmanager_secret_version.redshift_username.secret_string
+  master_password         = data.aws_secretsmanager_secret_version.redshift_password.secret_string
+  cluster_type            = "single-node" 
+  database_name           = "sales_dw"
+  publicly_accessible     = false
+  skip_final_snapshot     = true
 
-  publicly_accessible = false
-  skip_final_snapshot = true
   
-
-  vpc_security_group_ids = [aws_security_group.redshift_sg.id]
+  vpc_security_group_ids   = [aws_security_group.redshift_sg.id]
   cluster_subnet_group_name = aws_redshift_subnet_group.this.name
-  iam_roles = [var.redshift_copy_role_arn]
+  iam_roles                 = [data.aws_secretsmanager_secret_version.redshift_role.secret_string]
+
 
     lifecycle {
     ignore_changes = [
@@ -65,5 +82,6 @@ resource "aws_redshift_cluster" "this" {
       automated_snapshot_retention_period,
       encrypted
     ]
+    prevent_destroy = false
   }
 }

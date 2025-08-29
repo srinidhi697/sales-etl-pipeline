@@ -1,11 +1,11 @@
-import boto3, json, uuid, random, tempfile, os, time
+import boto3, json, uuid, random, tempfile, os
 from faker import Faker
 from datetime import datetime
 import traceback, sys
 
-BUCKET = "sales-etl-pipeline-dev-datalake"
+FALLBACK_BUCKET = "sales-etl-pipeline-dev-datalake"
 PREFIX = "raw/sales"
-TARGET_FILE_SIZE_MB = 50
+TARGET_FILE_SIZE_MB = 5000
 MESSY_RATIO = 0.05
 
 fake = Faker()
@@ -53,15 +53,14 @@ def generate_messy_record():
     return record
 
 def generate_sales_data():
-    bucket = BUCKET
+    bucket = FALLBACK_BUCKET
     today = datetime.today()
-    key = f"{PREFIX}/sales_{today.strftime('%Y%m%d_%H%M%S')}.json" #file_name
+    key = f"{PREFIX}/sales_{today.strftime('%Y%m%d_%H%M%S')}.json"
     target_bytes = TARGET_FILE_SIZE_MB * 1024 * 1024
 
     row_count, file_size_bytes = 0, 0
 
     # Write directly to a temp file on disk
-    t1 = time.time()
     with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8") as tmp:
         tmp_name = tmp.name
         while file_size_bytes < target_bytes:
@@ -69,18 +68,16 @@ def generate_sales_data():
             line = json.dumps(record) + "\n"
             tmp.write(line)
             row_count += 1
-            file_size_bytes += len(line.encode("utf-8")) #getting number of bytes written into the file
+            file_size_bytes += len(line.encode("utf-8"))
 
-            if row_count % 10000 == 0:
-                print(f"Done with generating {round(file_size_bytes/(1024 ** 3),3)}Gb of data")
-    t2 = time.time()
-    print("Time required for generating the data",t2-t1)
+            if row_count % 100000 == 0:
+                print(f"Generated {row_count:,} rows, {file_size_bytes/1024/1024:.2f} MB")
 
     # Upload the single file to S3
     s3.upload_file(tmp_name, bucket, key)
     os.remove(tmp_name)
 
-    print(f"Uploaded one file to s3://{bucket}/{key}")
+    print(f"✅ Uploaded one file to s3://{bucket}/{key}")
     print(f"Row Count: {row_count:,}, Size: ~{TARGET_FILE_SIZE_MB} MB")
 
 if __name__ == "__main__":

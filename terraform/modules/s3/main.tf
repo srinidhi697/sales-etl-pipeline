@@ -39,8 +39,31 @@ resource "aws_s3_object" "folders" {
   content = ""   # empty object to represent "folder"
 }
 
+# Upload raw_to_silver.py into scripts/ folder in S3
+resource "aws_s3_object" "raw_to_silver_script" {
+  bucket = aws_s3_bucket.this.id
+  key    = "scripts/raw_to_silver.py"
+  source = "${path.root}/../src/raw_to_silver.py"
+  etag   = filemd5("${path.root}/../src/raw_to_silver.py")
+}
+
+resource "aws_s3_object" "silver_to_gold_script" {
+  bucket = aws_s3_bucket.this.id
+  key    = "scripts/silver_to_gold.py"
+  source = "${path.root}/../src/silver_to_gold.py"
+  etag   = filemd5("${path.root}/../src/silver_to_gold.py")
+}
+
+resource "aws_s3_object" "gold_to_redshift_script" {
+  bucket = aws_s3_bucket.this.id
+  key    = "scripts/gold_to_redshift.py"
+  source = "${path.root}/../src/gold_to_redshift.py"
+  etag   = filemd5("${path.root}/../src/gold_to_redshift.py")
+}
+
+
 # -----------------------------
-# 🔔 Enable EventBridge notifications
+# Enable EventBridge notifications
 
 # -----------------------------
 resource "aws_s3_bucket_notification" "eventbridge" {
