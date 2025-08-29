@@ -5,7 +5,7 @@ import traceback, sys
 
 BUCKET = "sales-etl-pipeline-dev-datalake"
 PREFIX = "raw/sales"
-TARGET_FILE_SIZE_MB = 50
+TARGET_FILE_SIZE_MB = 5000
 MESSY_RATIO = 0.05
 
 fake = Faker()

@@ -87,7 +87,7 @@ resource "aws_sfn_state_machine" "etl_pipeline" {
       "Resource": "arn:aws:states:::sns:publish",
       "Parameters": {
         "TopicArn": "${var.sns_topic_arn}",
-        "Message": "✅ ETL pipeline completed successfully!",
+        "Message": "ETL pipeline completed successfully!",
         "Subject": "ETL Pipeline Success"
       },
       "End": true
@@ -97,7 +97,7 @@ resource "aws_sfn_state_machine" "etl_pipeline" {
       "Resource": "arn:aws:states:::sns:publish",
       "Parameters": {
         "TopicArn": "${var.sns_topic_arn}",
-        "Message": "❌ ETL pipeline FAILED! Check logs in CloudWatch.",
+        "Message": "ETL pipeline FAILED! Check logs in CloudWatch.",
         "Subject": "ETL Pipeline Failure"
       },
       "End": true
